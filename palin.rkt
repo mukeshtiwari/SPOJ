@@ -49,13 +49,13 @@
 (let loop ()
   (define a (read))
   (let/ec break
-  (define (repeat cnt)
-    (cond
-      [(>= cnt a) (break)]
-      [else
-       (define b (read))
-       (writeln (solve-for-n b))
-       (repeat (+ 1 cnt))]))
+    (define (repeat cnt)
+      (cond
+        [(>= cnt a) (break)]
+        [else
+         (define b (read))
+         (writeln (solve-for-n b))
+         (repeat (+ 1 cnt))]))
     (repeat 0)))
 
 
