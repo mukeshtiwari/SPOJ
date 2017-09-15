@@ -17,11 +17,11 @@
   (andmap (λ(x) (eq? x 9)) nlist))
 
 
-(define (odd-list-palin fhalf ldigit num)
-  (let ([t (list-to-digit (append fhalf (list ldigit) (reverse fhalf)))])
+(define (odd-list-palin fhalf  num)
+  (let ([t (list-to-digit (append fhalf (rest (reverse fhalf))))])
     (cond
       [(> t num) t]
-      [else (odd-list-palin (digit-to-list (+ 1 (list-to-digit fhalf))) ldigit num)])))
+      [else (odd-list-palin (digit-to-list (+ 1 (list-to-digit fhalf))) num)])))
 
 (define (even-list-palin fhalf num)
   (let ([t (list-to-digit (append fhalf (reverse fhalf)))])
@@ -33,9 +33,6 @@
   (let ([k (length lst)])
     (list-to-digit (append (list 1) (build-list (- k 1) (const '0)) (list 1)))))
 
-;; a list is palindrome or not
-(define (palindrome-number lst)
-  (andmap eq? lst (reverse lst)))
 
 (define (solve-for-n n)
   (cond 
@@ -46,11 +43,5 @@
        (cond
          [(everything-is-nine lst) (all-nine-palin lst)]
          [(even? len) (even-list-palin (take lst (quotient len 2)) n)]
-         [(odd? len)
-          (let* ([lastdig (first (drop lst (quotient len 2)))]
-                 [rem (remainder (+ 1 lastdig) 10)])
-            (cond
-              [(palindrome-number lst)
-               (odd-list-palin (take lst (quotient len 2)) rem n)]
-             [else
-              (odd-list-palin (take lst (quotient len 2)) lastdig n)]))]))]))
+         [(odd? len) (odd-list-palin (take lst (+ 1 (quotient len 2))) n)]))]))
+          
