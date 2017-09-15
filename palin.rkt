@@ -48,6 +48,7 @@
 
 (let loop ()
   (define a (read))
+  ;(define a (string->number (read-line (current-input-port) 'any)))
   (let/ec break
     (define (repeat cnt)
       (cond
