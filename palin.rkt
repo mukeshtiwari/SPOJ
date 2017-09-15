@@ -44,4 +44,17 @@
          [(everything-is-nine lst) (all-nine-palin lst)]
          [(even? len) (even-list-palin (take lst (quotient len 2)) n)]
          [(odd? len) (odd-list-palin (take lst (+ 1 (quotient len 2))) n)]))]))
-          
+
+
+(let loop ()
+  (define a (read))
+  (define (repeat cnt)
+    (cond
+      [(>= cnt a) break]
+      [else
+       (define b (read))
+       (writeln (solve-for-n b))
+       (repeat (+ 1 cnt))]))
+    (repeat 0))
+
+
