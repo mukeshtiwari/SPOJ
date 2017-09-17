@@ -20,10 +20,9 @@
 (define (split-string str)
   (let-values ([(quot rem) (quotient/remainder (string-length str) 2)])
     (substring str 0 (+ quot rem))))
-        
+
 (define (increment-string-by-one str)
   (number->string (+ (string->number str) 1)))
-
 
 (define (all-nine-string str)
   (equal? (make-string (string-length str) #\9) str))
@@ -74,3 +73,4 @@
                   (solve-for-str b))
          (repeat (+ 1 cnt))]))
     (repeat 0)))
+
