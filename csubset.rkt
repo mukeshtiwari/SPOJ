@@ -40,10 +40,17 @@
    ["}" (token-Rbr)]
    [";" (token-Semi)]
    ["," (token-Comma)]
-   [(:+ (:or (char-range #\a #\z) (char-range #\A #\Z))) (token-Identifier lexeme)]
+   [(concatenation
+     (:or (char-range #\a #\z) (char-range #\A #\Z) #\_)
+     (:* (:or (char-range #\a #\z) (char-range #\A #\Z) (char-range #\0 #\9) #\_))) (token-Identifier lexeme)]
    [(:+ (char-range #\0 #\9)) (token-Integer lexeme)]
+   [(concatenation "\"" any-string "\"") (token-String lexeme)]
+   [(concatenation "/*" any-string "*/") (expression-lexer input-port)]
    [whitespace (expression-lexer input-port)]
    [(eof) (token-Eof)]))
 
-(define simp-prog (open-input-string "2 + 3 ; print(\"helllo\")"))
+(define simp-prog (open-input-string "print(42);
+print(\"\nHello World\nGood Bye\nok\n\");
+print(\"Print a slash n - \\n.\n\");"))
+
 (expression-lexer simp-prog)
