@@ -44,13 +44,33 @@
      (:or (char-range #\a #\z) (char-range #\A #\Z) #\_)
      (:* (:or (char-range #\a #\z) (char-range #\A #\Z) (char-range #\0 #\9) #\_))) (token-Identifier lexeme)]
    [(:+ (char-range #\0 #\9)) (token-Integer lexeme)]
-   [(concatenation "\"" any-string "\"") (token-String lexeme)]
-   [(concatenation "/*" any-string "*/") (expression-lexer input-port)]
+   [(:: "\"" (:* (char-complement "\"")) "\"") (token-String lexeme)]
+   [(:: "/*" (complement (:: any-string "*/" any-string)) "*/") (expression-lexer input-port)] 
    [whitespace (expression-lexer input-port)]
    [(eof) (token-Eof)]))
 
-(define simp-prog (open-input-string "print(42);
-print(\"\nHello World\nGood Bye\nok\n\");
-print(\"Print a slash n - \\n.\n\");"))
+
+; Working for every all test case http://rosettacode.org/wiki/Compiler/lexical_analyzer
+; I haven't considered 
+(define simp-prog (open-input-string "
+/*
+  All lexical tokens - not syntactically correct, but that will
+  have to wait until syntax analysis
+ */
+/* Print   */  print    /* Sub     */  -
+/* Putc    */  putc     /* Lss     */  <
+/* If      */  if       /* Gtr     */  >
+/* Else    */  else     /* Leq     */  <=
+/* While   */  while    /* Geq     */  >=
+/* Lbrace  */  {        /* Eq      */  ==
+/* Rbrace  */  }        /* Neq     */  !=
+/* Lparen  */  (        /* And     */  &&
+/* Rparen  */  )        /* Or      */  ||
+/* Uminus  */  -        /* Semi    */  ;
+/* Not     */  !        /* Comma   */  ,
+/* Mul     */  *        /* Assign  */  =
+/* Div     */  /        /* Integer */  42
+/* Mod     */  %        /* String  */  \"String literal\"
+/* Add     */  +        /* Ident   */  variable_name"))
 
 (expression-lexer simp-prog)
