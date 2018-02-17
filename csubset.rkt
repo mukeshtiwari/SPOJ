@@ -43,7 +43,7 @@
    [(concatenation
      (:or (char-range #\a #\z) (char-range #\A #\Z) #\_)
      (:* (:or (char-range #\a #\z) (char-range #\A #\Z) (char-range #\0 #\9) #\_))) (token-Identifier lexeme)]
-   [(:+ (char-range #\0 #\9)) (token-Integer lexeme)]
+   [(:+ (char-range #\0 #\9)) (token-Integer (string->number lexeme))]
    [(:: "\"" (:* (char-complement "\"")) "\"") (token-String lexeme)]
    [(:: "/*" (complement (:: any-string "*/" any-string)) "*/") (expression-lexer input-port)] 
    [whitespace (expression-lexer input-port)]
@@ -51,26 +51,64 @@
 
 
 ; Working for every all test case http://rosettacode.org/wiki/Compiler/lexical_analyzer
-; I haven't considered 
-(define simp-prog (open-input-string "
-/*
-  All lexical tokens - not syntactically correct, but that will
-  have to wait until syntax analysis
- */
-/* Print   */  print    /* Sub     */  -
-/* Putc    */  putc     /* Lss     */  <
-/* If      */  if       /* Gtr     */  >
-/* Else    */  else     /* Leq     */  <=
-/* While   */  while    /* Geq     */  >=
-/* Lbrace  */  {        /* Eq      */  ==
-/* Rbrace  */  }        /* Neq     */  !=
-/* Lparen  */  (        /* And     */  &&
-/* Rparen  */  )        /* Or      */  ||
-/* Uminus  */  -        /* Semi    */  ;
-/* Not     */  !        /* Comma   */  ,
-/* Mul     */  *        /* Assign  */  =
-/* Div     */  /        /* Integer */  42
-/* Mod     */  %        /* String  */  \"String literal\"
-/* Add     */  +        /* Ident   */  variable_name"))
+; I haven't considered some of the corner cases. 
+
+
+
+
+;; Writing parser. After finishing move it to separate file
+
+(define-struct prog-exp (expl expr) #:transparent)
+(define-struct if-else-exp (expt expl expr) #:transparent)
+(define-struct if-exp (expl expr) #:transparent)
+(define-struct seq-exp (expl expr) #:transparent)
+(define-struct while-exp (expl expr) #:transparent)
+(define-struct ass-exp (expl expr) #:transparent)
+(define-struct ident-exp (i) #:transparent)
+(define-struct int-exp (i) #:transparent)
+(define-struct str-exp (i) #:transparent)
+(define-struct arith-exp (op expl expr) #:transparent)
+
+
+(define expression-parser
+  (parser
+   (start stmt-list)
+   (end Eof)
+   (error void)
+   (tokens a b)
+   (precs (left Add Sub)
+          (left Mult Div))
+   (grammar
+    (stmt-list
+     [(stmt) $1]
+     [() '()])
+    (stmt
+     [(Semi) '()]
+     [(Identifier Assign exp Semi) (ass-exp $1 $3)]
+     [(While exp stmt) (while-exp $2 $3)]
+     [(If exp stmt Else stmt) (if-else-exp $2 $3 $5)]
+     [(If exp stmt) (if-exp $2 $3)]
+     [(Lbr stmt-list Rbr) $2])
+   
+    
+    (exp
+     [(Identifier) (ident-exp $1)]
+     [(Integer) (int-exp $1)]
+     [(String) (str-exp $1)]
+     [(Lpar exp Rpar) $2]
+     [(exp Add exp) (arith-exp "+" $1 $3)]
+     [(exp Sub exp) (arith-exp "-" $1 $3)]
+     [(exp Mult exp) (arith-exp "*" $1 $3)]
+     [(exp Div exp) (arith-exp "/" $1 $3)]))))
+
+
+(define simp-prog (open-input-string "x = 1;"))
 
 (expression-lexer simp-prog)
+
+(define (lex-this lexer input) (lambda () (lexer input)))
+
+
+(define (solve-string str)
+  (let ((input (open-input-string str)))
+    (expression-parser (lex-this expression-lexer input))))
