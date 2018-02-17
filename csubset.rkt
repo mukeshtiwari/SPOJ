@@ -68,6 +68,10 @@
 (define-struct int-exp (i) #:transparent)
 (define-struct str-exp (i) #:transparent)
 (define-struct arith-exp (op expl expr) #:transparent)
+(define-struct print-exp (expr) #:transparent)
+(define-struct put-exp (expr) #:transparent)
+(define-struct logic-exp (op expl expr) #:transparent)
+(define-struct unary-exp (op expr) #:transparent)
 
 
 (define expression-parser
@@ -80,29 +84,58 @@
           (left Mult Div))
    (grammar
     (stmt-list
-     [(stmt) $1]
-     [() '()])
+     [(stmt) $1])
     (stmt
      [(Semi) '()]
      [(Identifier Assign exp Semi) (ass-exp $1 $3)]
-     [(While exp stmt) (while-exp $2 $3)]
-     [(If exp stmt Else stmt) (if-else-exp $2 $3 $5)]
-     [(If exp stmt) (if-exp $2 $3)]
+     [(While pexp stmt) (while-exp $2 $3)]
+     [(If pexp stmt Else stmt) (if-else-exp $2 $3 $5)]
+     [(If pexp stmt) (if-exp $2 $3)]
+     [(Print Lpar prt-list Rpar Semi) (print-exp $3)]
+     [(Putc pexp Semi) (put-exp $2)]
      [(Lbr stmt-list Rbr) $2])
-   
-    
+    (prt-list
+     [(String) (str-exp $1)]
+     [(exp Comma String) (append $1 $3)]
+     [(exp Comma exp) (append $1 $3)]
+     [(exp) $1])  
+    (pexp
+     [(Lpar exp Rpar) $2])
     (exp
+     [(and-exp Or and-exp) (logic-exp 'Or $1 $3)]
+     [(and-exp) $1])
+    (and-exp
+     [(eq-exp And eq-exp) (logic-exp 'And $1 $3)]
+     [(eq-exp) $1])
+    (eq-exp
+     [(rel-exp Eq rel-exp) (logic-exp 'Eq $1 $3)]
+     [(rel-exp Neq rel-exp) (logic-exp 'Neq $1 $3)])
+    (rel-exp
+     [(add-exp Le add-exp) (logic-exp 'Lt $1 $3)]
+     [(add-exp Leq add-exp) (logic-exp 'Leq $1 $3)]
+     [(add-exp Gt add-exp) (logic-exp 'Gt $1 $3)]
+     [(add-exp Geq add-exp) (logic-exp 'Geq $1 $3)])
+    (add-exp
+     [(mult-exp Add mult-exp) (arith-exp 'Add $1 $3)]
+     [(mult-exp Sub mult-exp) (arith-exp 'Sub $1 $3)]
+     [(mult-exp) $1])
+    (mult-exp
+     [(primary Mult primary) (arith-exp 'Mult $1 $3)]
+     [(primary Div primary) (arith-exp 'Div $1 $3)]
+     [(primary Mod primary) (arith-exp 'Mod $1 $3)]
+     [(primary) $1])
+    (primary
      [(Identifier) (ident-exp $1)]
      [(Integer) (int-exp $1)]
-     [(String) (str-exp $1)]
      [(Lpar exp Rpar) $2]
-     [(exp Add exp) (arith-exp "+" $1 $3)]
-     [(exp Sub exp) (arith-exp "-" $1 $3)]
-     [(exp Mult exp) (arith-exp "*" $1 $3)]
-     [(exp Div exp) (arith-exp "/" $1 $3)]))))
+     [(Add primary) $2]
+     [(Sub primary) (unary-exp 'Sub $2)]
+     [(Not primary) (unary-exp 'Neg $2)]))))
+     
+     
+    
 
-
-(define simp-prog (open-input-string "x = 1;"))
+(define simp-prog (open-input-string "if (x == 1) average = total / num_items;"))
 
 (expression-lexer simp-prog)
 
