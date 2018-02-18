@@ -135,7 +135,7 @@
      
     
 
-(define simp-prog (open-input-string "if (x == 1) average = total / num_items;"))
+(define simp-prog (open-input-string "if (x == 1) { x = x + 2;} else {x = x + 3;} ;"))
 
 (expression-lexer simp-prog)
 
