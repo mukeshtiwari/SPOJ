@@ -19,9 +19,10 @@
   (modular-expt n (- p 2) p))
 
 (define (factorial-mod n p)
-  (for/fold ([acc 1])
-            ([i (in-range 1 (+ n 1))])
-    (modulo (* acc i) p)))
+  (if (< n 0) 0
+      (for/fold ([acc 1])
+                ([i (in-range 1 (+ n 1))])
+        (modulo (* acc i) p))))
         
 
 (define (binom-mod mi ni p)
@@ -39,3 +40,4 @@
 (lucas-binom 950 100 7) ; 2
 (lucas-binom 10 2 13); 6
 (lucas-binom 1000 900 13); 8
+(lucas-binom 456 51 5)
